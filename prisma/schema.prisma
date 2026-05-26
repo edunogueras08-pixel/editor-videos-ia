@@ -1,0 +1,132 @@
+// AI Video Studio — Prisma Schema
+// learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// PROJECT — raíz de cada vídeo de trabajo
+// status: uploaded | analyzing | analyzed | editing | exporting | done | error
+// style:  professional | dynamic | storytelling | educational | minimalist
+// ──────────────────────────────────────────────────────────────────────────────
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  status      String   @default("uploaded")
+  duration    Float?
+  videoPath   String?
+  videoName   String?
+  videoSize   Int?
+  thumbnail   String?
+  style       String   @default("professional")
+  styleRef    String?
+  musicId     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  clips    Clip[]
+  analysis Analysis?
+  exports  Export[]
+  music    Music?    @relation(fields: [musicId], references: [id])
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// ANALYSIS — resultado del análisis IA del vídeo
+// Todos los campos JSON se almacenan como String (SQLite no tiene JSON nativo)
+// ──────────────────────────────────────────────────────────────────────────────
+model Analysis {
+  id            String   @id @default(cuid())
+  projectId     String   @unique
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  highlights    String?  // JSON: [{time, duration, label, score, type}]
+  suggestedCuts String?  // JSON: [{startTime, endTime, reason, type, priority}]
+  structure     String?  // JSON: {hook, intro, development, keyMoments[], outro}
+  transcript    String?  // Texto completo de transcripción
+  keyMoments    String?  // JSON: [{time, text, importance, keyword}]
+  silences      String?  // JSON: [{startTime, endTime, duration}]
+  zoomPoints    String?  // JSON: [{time, scale, reason}]
+  totalScore    Float    @default(0)
+  wordCount     Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// CLIP — fragmento corto generado del vídeo largo
+// format:   vertical | horizontal
+// status:   pending | processing | ready | failed
+// platform: tiktok | shorts | reels | all
+// ──────────────────────────────────────────────────────────────────────────────
+model Clip {
+  id           String   @id @default(cuid())
+  projectId    String
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title        String
+  description  String?
+  startTime    Float
+  endTime      Float
+  duration     Float
+  reason       String?
+  score        Float    @default(0)
+  format       String   @default("vertical")
+  status       String   @default("pending")
+  outputPath   String?
+  hasSubtitles Boolean  @default(true)
+  hasZoom      Boolean  @default(true)
+  platform     String   @default("all")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  exports Export[]
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// MUSIC — biblioteca musical del usuario
+// tone: motivational | emotional | energetic | mysterious | calm | premium
+// ──────────────────────────────────────────────────────────────────────────────
+model Music {
+  id        String    @id @default(cuid())
+  name      String
+  artist    String?
+  tone      String    @default("calm")
+  duration  Float?
+  filePath  String
+  fileName  String
+  fileSize  Int?
+  bpm       Int?
+  createdAt DateTime  @default(now())
+
+  projects Project[]
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// EXPORT — fichero exportado (vídeo largo o clip)
+// type:       long | clip
+// status:     pending | processing | ready | failed
+// resolution: 1080p | 720p | 4k
+// ──────────────────────────────────────────────────────────────────────────────
+model Export {
+  id         String   @id @default(cuid())
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  clipId     String?
+  clip       Clip?    @relation(fields: [clipId], references: [id])
+  type       String   @default("long")
+  format     String   @default("mp4")
+  resolution String   @default("1080p")
+  status     String   @default("pending")
+  outputPath String?
+  fileSize   Int?
+  duration   Float?
+  progress   Int      @default(0)
+  errorMsg   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}

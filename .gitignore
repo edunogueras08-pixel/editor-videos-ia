@@ -39,3 +39,21 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/app/generated/prisma
+
+# Database
+prisma/*.db
+prisma/*.db-journal
+
+# Uploaded files (no versionar; usa almacenamiento en la nube en producción)
+/public/uploads/videos/*
+/public/uploads/music/*
+/public/uploads/thumbnails/*
+/public/exports/*
+
+# Pero mantener las carpetas vacías
+!public/uploads/videos/.gitkeep
+!public/uploads/music/.gitkeep
+!public/uploads/thumbnails/.gitkeep
+!public/exports/.gitkeep
