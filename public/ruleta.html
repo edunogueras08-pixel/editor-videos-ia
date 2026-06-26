@@ -149,6 +149,7 @@ select:focus{outline:none;border-color:var(--accent)}
   <header>
     <h1>🎡 Ruleta Andrea &amp; Edu</h1>
     <div class="hdr-btns">
+      <button class="icon-btn" id="soundBtn" title="Sonido">🔊</button>
       <button class="icon-btn" id="settingsBtn" title="Ajustes">⚙️</button>
     </div>
   </header>
@@ -180,7 +181,6 @@ select:focus{outline:none;border-color:var(--accent)}
       <div class="result-text" id="resultText"></div>
       <div class="result-actions">
         <button id="favResultBtn">☆ Favorito</button>
-        <button id="skipResultBtn">⏭ Saltar</button>
         <button id="repeatResultBtn">↩ Repetir</button>
       </div>
     </div>
@@ -207,7 +207,6 @@ select:focus{outline:none;border-color:var(--accent)}
     <button class="tab active" data-tab="historial">Historial</button>
     <button class="tab" data-tab="favoritos">Favoritos</button>
     <button class="tab" data-tab="editor">Editor</button>
-    <button class="tab" data-tab="reglas">Reglas</button>
   </div>
 
   <!-- HISTORIAL -->
@@ -227,25 +226,6 @@ select:focus{outline:none;border-color:var(--accent)}
     <div id="editorList"></div>
   </div>
 
-  <!-- REGLAS -->
-  <div id="reglas" class="tab-content">
-    <p class="section-title">Reglas del juego</p>
-    <ul class="rules-list">
-      <li><span class="num">1.</span>Cualquier casilla se puede saltar sin explicaciones.</li>
-      <li><span class="num">2.</span>Los dos pueden parar cuando quieran.</li>
-      <li><span class="num">3.</span>Si una casilla no apetece, se cambia por otra.</li>
-      <li><span class="num">4.</span>Se puede jugar por niveles o con todos mezclados.</li>
-      <li><span class="num">5.</span>Los comodines cambian reglas, turnos o intensidad.</li>
-      <li><span class="num">6.</span>Lo importante es pasarlo bien, no cumplir todo.</li>
-    </ul>
-    <p class="section-title" style="margin-top:20px">Niveles</p>
-    <ul class="rules-list">
-      <li><span class="num" style="color:var(--l1a)">N1</span>Provocación · Para empezar, calentar y crear tensión.</li>
-      <li><span class="num" style="color:var(--l2a)">N2</span>Piel · Contacto más directo, menos ropa, más intimidad.</li>
-      <li><span class="num" style="color:var(--l3a)">N3</span>Boca · Más boca, besos, lamer, provocar y subir intensidad.</li>
-      <li><span class="num" style="color:var(--l4a)">N4</span>Final · Decidir cómo seguir, ritmo, postura, cambios y cierre.</li>
-    </ul>
-  </div>
 </div>
 
 <!-- CARD MODAL -->
@@ -342,7 +322,7 @@ const INITIAL_CARDS = [
   mkCard(1,'Andrea','Andrea provoca a Edu sin tocarlo'),
   mkCard(1,'Andrea','Andrea provoca a Edu quitándose una prenda'),
   mkCard(1,'Andrea','Andrea provoca a Edu sentándose encima'),
-  mkCard(1,'Andrea','Andrea provoca a Edu rozándose contra él'),
+  mkCard(1,'Andrea','Andrea provoca a Edu rozándole el culo contra su pito'),
   mkCard(1,'Andrea','Andrea provoca a Edu hablándole al oído'),
   mkCard(1,'Andrea','Andrea provoca a Edu mirándolo mientras se toca el cuerpo'),
   mkCard(1,'Andrea','Andrea provoca a Edu y él no puede tocar durante 1 minuto'),
@@ -368,7 +348,7 @@ const INITIAL_CARDS = [
   mkCard(1,'Edu','Edu provoca a Andrea sin tocarla'),
   mkCard(1,'Edu','Edu provoca a Andrea quitándole una prenda'),
   mkCard(1,'Edu','Edu provoca a Andrea sentándola encima'),
-  mkCard(1,'Edu','Edu provoca a Andrea rozándose contra ella'),
+  mkCard(1,'Edu','Edu provoca a Andrea rozándole el pito contra su culo'),
   mkCard(1,'Edu','Edu provoca a Andrea hablándole al oído'),
   mkCard(1,'Edu','Edu provoca a Andrea mirándola mientras le acaricia el cuerpo'),
   mkCard(1,'Edu','Edu provoca a Andrea y ella no puede tocar durante 1 minuto'),
@@ -688,6 +668,43 @@ function drawPointer(cx, cy, r) {
 }
 
 // ─────────────────────────────────────────────
+// SOUND (Web Audio, sin archivos)
+// ─────────────────────────────────────────────
+let audioCtx = null;
+let soundOn = true;
+function initAudio() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { return; }
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+function beep(freq, dur, type, vol, when) {
+  if (!soundOn || !audioCtx) return;
+  const t0 = audioCtx.currentTime + (when || 0);
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type || 'sine';
+  osc.frequency.setValueAtTime(freq, t0);
+  gain.gain.setValueAtTime(0.0001, t0);
+  gain.gain.exponentialRampToValueAtTime(vol || 0.2, t0 + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.start(t0); osc.stop(t0 + dur + 0.02);
+}
+// Tick del giro: suena según pasa cada casilla bajo el puntero
+function playTick() { beep(1100, 0.04, 'square', 0.08); }
+// Fanfarria al salir el resultado
+function playWin() {
+  [523, 659, 784, 1047].forEach((f, i) => beep(f, 0.18, 'triangle', 0.22, i * 0.09));
+}
+// Sonido del comodín
+function playJokerSound() {
+  beep(440, 0.12, 'sawtooth', 0.18, 0);
+  beep(660, 0.12, 'sawtooth', 0.18, 0.1);
+  beep(880, 0.2, 'sawtooth', 0.2, 0.2);
+}
+
+// ─────────────────────────────────────────────
 // SPIN
 // ─────────────────────────────────────────────
 function easeOut(t) { return 1 - Math.pow(1 - t, 4); }
@@ -703,6 +720,7 @@ function startSpin() {
     if (!available.length) { showToast('Todas las casillas usadas · Reinicia'); return; }
   }
 
+  initAudio();
   isSpinning = true;
   document.getElementById('spinBtn').disabled = true;
   document.getElementById('resultBox').style.display = 'none';
@@ -723,12 +741,16 @@ function startSpin() {
   const totalDelta = finalAngle - startAngle;
   const duration = 4500 + Math.random() * 1000;
   const startTime = performance.now();
+  let lastTickSeg = -1;
 
   function animate(now) {
     const elapsed = now - startTime;
     const progress = Math.min(elapsed / duration, 1);
     wheelAngle = startAngle + totalDelta * easeOut(progress);
     drawWheel();
+    // Tick cada vez que una casilla nueva pasa por el puntero
+    const seg = Math.floor(Math.abs(wheelAngle) / segDeg);
+    if (seg !== lastTickSeg) { lastTickSeg = seg; playTick(); }
     if (progress < 1) {
       animationId = requestAnimationFrame(animate);
     } else {
@@ -759,6 +781,7 @@ function handleResult(card) {
   document.getElementById('resultLevel').style.color = LEVEL_COLORS[card.level][0];
   updateFavResultBtn(card);
   box.style.display = 'block';
+  playWin();
 
   renderHistory();
   drawWheel();
@@ -776,6 +799,7 @@ function updateFavResultBtn(card) {
 // JOKER
 // ─────────────────────────────────────────────
 function pickJoker() {
+  initAudio();
   const available = state.jokers.filter(j => !j.used);
   if (!available.length) { showToast('Todos los comodines usados'); return; }
   const j = available[Math.floor(Math.random() * available.length)];
@@ -787,6 +811,7 @@ function pickJoker() {
   const box = document.getElementById('jokerBox');
   document.getElementById('jokerText').textContent = j.text;
   box.style.display = 'block';
+  playJokerSound();
   renderHistory();
 }
 
@@ -1034,10 +1059,6 @@ document.getElementById('favResultBtn').addEventListener('click', () => {
   toggleFav(currentWinner.id);
   updateFavResultBtn(currentWinner);
 });
-document.getElementById('skipResultBtn').addEventListener('click', () => {
-  document.getElementById('resultBox').style.display = 'none';
-  startSpin();
-});
 document.getElementById('repeatResultBtn').addEventListener('click', () => {
   if (currentWinner) { document.getElementById('resultBox').style.display = 'none'; setTimeout(() => handleResult(currentWinner), 100); }
 });
@@ -1057,6 +1078,12 @@ document.getElementById('cardSaveBtn').addEventListener('click', saveCard);
 document.getElementById('cardCancelBtn').addEventListener('click', () => document.getElementById('cardModal').classList.remove('open'));
 
 // Settings
+document.getElementById('soundBtn').addEventListener('click', () => {
+  soundOn = !soundOn;
+  document.getElementById('soundBtn').textContent = soundOn ? '🔊' : '🔇';
+  if (soundOn) { initAudio(); showToast('Sonido activado'); } else showToast('Sonido silenciado');
+});
+
 document.getElementById('settingsBtn').addEventListener('click', openSettings);
 document.getElementById('settingsCloseBtn').addEventListener('click', () => document.getElementById('settingsModal').classList.remove('open'));
 document.getElementById('exportBtn').addEventListener('click', exportCards);
