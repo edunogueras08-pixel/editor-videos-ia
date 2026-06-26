@@ -491,15 +491,112 @@ const INITIAL_JOKERS = [
 // STATE
 // ─────────────────────────────────────────────
 const STORE_KEY = 'ruleta_ae_v2';
-let state = { cards: [], jokers: [], history: [], settings: { noRepeat: false } };
+const DATA_VERSION = 3;
+let state = { cards: [], jokers: [], history: [], settings: { noRepeat: false }, version: 0 };
 
 function loadState() {
   try {
     const raw = localStorage.getItem(STORE_KEY);
-    if (raw) { state = JSON.parse(raw); return; }
+    if (raw) {
+      state = JSON.parse(raw);
+      migrateData();
+      return;
+    }
   } catch(e) {}
   state.cards = JSON.parse(JSON.stringify(INITIAL_CARDS));
   state.jokers = JSON.parse(JSON.stringify(INITIAL_JOKERS));
+  state.version = DATA_VERSION;
+}
+
+function migrateData() {
+  if ((state.version || 0) >= DATA_VERSION) return;
+
+  // ── Patch azotes suaves ──────────────────────
+  const azotesMap = {
+    'Andrea le da azotes suaves a Edu': 'Andrea le da azotes a Edu',
+    'Edu le da azotes suaves a Andrea': 'Edu le da azotes a Andrea',
+    'Edu da azotes suaves a Andrea':    'Edu da azotes a Andrea',
+  };
+  state.cards.forEach(c => { if (azotesMap[c.text]) c.text = azotesMap[c.text]; });
+
+  // ── Patch rozar ─────────────────────────────
+  const rozarMap = {
+    'Andrea provoca a Edu rozándose contra él':  'Andrea provoca a Edu rozándole el culo contra su pito',
+    'Edu provoca a Andrea rozándose contra ella':'Edu provoca a Andrea rozándole el pito contra su culo',
+  };
+  state.cards.forEach(c => { if (rozarMap[c.text]) c.text = rozarMap[c.text]; });
+
+  // ── Mover muslos N3→N1 ──────────────────────
+  state.cards.forEach(c => {
+    if (c.text === 'Andrea besa los muslos de Edu' && c.level === 3) c.level = 1;
+    if (c.text === 'Edu besa los muslos de Andrea' && c.level === 3) c.level = 1;
+  });
+
+  // ── Añadir nuevas de N1 si no existen ───────
+  const hasCard = t => state.cards.some(c => c.text === t);
+  const addCard = (level, person, text) => {
+    if (!hasCard(text)) state.cards.push({ id: Math.random().toString(36).slice(2), level, person, text, favorite: false, used: false, createdAt: ts() });
+  };
+  addCard(1, 'Edu', 'Edu le besa el culito a Andrea');
+  if (!hasCard('Andrea besa los muslos de Edu')) addCard(1, 'Andrea', 'Andrea besa los muslos de Edu');
+  if (!hasCard('Edu besa los muslos de Andrea'))  addCard(1, 'Edu',    'Edu besa los muslos de Andrea');
+
+  // ── N2 Andrea: por encima de los calzoncillos ─
+  const n2patchA = {
+    'Andrea le da besitos suaves en el pito a Edu':      'Andrea le besa el pito a Edu por encima de los calzoncillos de tomates',
+    'Andrea roza el pito de Edu con los labios':         'Andrea roza el pito de Edu con los labios por encima de los calzoncillos de tomates',
+    'Andrea provoca el pito de Edu con la boca sin morder':'Andrea provoca el pito de Edu con la boca por encima de los calzoncillos de tomates',
+  };
+  state.cards.forEach(c => { if (c.level === 2 && n2patchA[c.text]) c.text = n2patchA[c.text]; });
+  addCard(2, 'Andrea', 'Andrea le besa el pito a Edu por encima de los calzoncillos de tomates');
+
+  // ── N2 Edu: por encima de las braguitas ──────
+  const n2patchE = {
+    'Edu le da besitos suaves en el chocho a Andrea':    'Edu le besa el chocho a Andrea por encima de las braguitas',
+    'Edu roza el chocho de Andrea con los labios':       'Edu roza el chocho de Andrea con los labios por encima de las braguitas',
+    'Edu provoca el chocho de Andrea con la boca sin morder':'Edu provoca el chocho de Andrea con la boca por encima de las braguitas',
+  };
+  state.cards.forEach(c => { if (c.level === 2 && n2patchE[c.text]) c.text = n2patchE[c.text]; });
+
+  // ── N3: quitar las que salen de la lista directa ─
+  const keepN3 = new Set([
+    'Andrea besa el pito de Edu',
+    'Andrea roza el pito de Edu con los labios',
+    'Andrea lame el pito de Edu',
+    'Andrea le chupa el pito a Edu',
+    'Andrea le chupa el pito despacio a Edu',
+    'Andrea combina paja y boca con Edu',
+    'Edu besa el chocho de Andrea',
+    'Edu lame el chocho de Andrea',
+    'Edu le come el chocho a Andrea',
+    'Edu le come el chocho despacio a Andrea',
+    'Edu combina boca y dedos con Andrea',
+  ]);
+  const removeFromN3 = new Set([
+    'Andrea muerde suave el pito de Edu',
+    'Andrea combina paja y besos con Edu',
+    'Andrea marca el ritmo con Edu',
+    'Andrea provoca a Edu y para',
+    'Andrea le habla sucio a Edu',
+    'Andrea le pide a Edu que la mire',
+    'Andrea le dice a Edu qué quiere que él le haga',
+    'Andrea deja que Edu le diga el ritmo',
+    'Andrea repite lo que más le guste a Edu',
+    'Edu combina dedos y besos con Andrea',
+    'Edu toca el clítoris de Andrea',
+    'Edu deja que Andrea le diga el ritmo',
+    'Edu provoca a Andrea y para',
+    'Edu mira a Andrea mientras la toca',
+    'Edu le habla sucio a Andrea',
+    'Edu le dice a Andrea qué quiere que ella le haga',
+    'Edu repite lo que más le guste a Andrea',
+  ]);
+  state.cards = state.cards.filter(c => !(c.level === 3 && removeFromN3.has(c.text)));
+  // Añadir roza directa en N3 si falta
+  addCard(3, 'Andrea', 'Andrea roza el pito de Edu con los labios');
+
+  state.version = DATA_VERSION;
+  saveState();
 }
 
 function saveState() {
@@ -863,10 +960,16 @@ function renderEditor() {
 
   el.innerHTML = groups.map(g => {
     const col = (LEVEL_COLORS[g.level] || ['#888'])[0];
-    const cardHtml = g.cards.map(c => `
+    const cardHtml = g.cards.map(c => {
+      const lvlOpts = [1,2,3,4].map(n =>
+        `<option value="${n}" ${c.level===n?'selected':''}>${n}</option>`).join('');
+      return `
       <div class="card-item ${c.used ? 'used' : ''}">
-        <div style="flex:1">
-          <div class="card-person">${c.person}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+            <span style="font-size:.68rem;color:var(--txt2)">${c.person}</span>
+            <select class="lvl-sel" onchange="moveLevel('${c.id}',this.value)" title="Cambiar nivel" style="background:${col};color:#fff;border:none;border-radius:5px;padding:1px 4px;font-size:.68rem;font-weight:700;cursor:pointer">${lvlOpts}</select>
+          </div>
           <div class="card-text">${c.text}</div>
         </div>
         <div class="card-actions">
@@ -875,7 +978,8 @@ function renderEditor() {
           <button onclick="openEditCard('${c.id}')" title="Editar">✏️</button>
           <button onclick="deleteCard('${c.id}')" title="Borrar" style="color:#ff4466">🗑</button>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
     return `<div class="cards-section">
       <div class="level-header">
         <span class="level-title" style="background:${col}">Nivel ${g.level} · ${LEVEL_NAMES[g.level]}</span>
@@ -884,6 +988,11 @@ function renderEditor() {
       ${cardHtml || '<p class="empty-msg" style="font-size:.8rem">Sin casillas</p>'}
     </div>`;
   }).join('');
+}
+
+function moveLevel(id, newLevel) {
+  const c = state.cards.find(x => x.id === id);
+  if (c) { c.level = parseInt(newLevel); saveState(); renderEditor(); drawWheel(); showToast(`Movida a Nivel ${newLevel}`); }
 }
 
 function toggleUsed(id) {
