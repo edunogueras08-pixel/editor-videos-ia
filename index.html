@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Ruleta Andrea &amp; Edu</title>
+<!-- iOS: añadir a pantalla de inicio como app a pantalla completa -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ruleta A&amp;E">
+<meta name="theme-color" content="#0a0a18">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Crect width='180' height='180' rx='40' fill='%230a0a18'/%3E%3Ccircle cx='90' cy='90' r='58' fill='none' stroke='%23c0366a' stroke-width='8'/%3E%3Ccircle cx='90' cy='90' r='10' fill='%23ff6b9d'/%3E%3Ctext x='90' y='150' font-size='34' text-anchor='middle' fill='%23ff6b9d' font-family='sans-serif'%3E%F0%9F%8E%A1%3C/text%3E%3C/svg%3E">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a18;--bg2:#12122a;--bg3:#1a1a35;
+  --accent:#c0366a;--accent2:#8b2fc9;--accent3:#ff6b9d;
+  --txt:#f0f0ff;--txt2:#9090b0;
+  --l1a:#e63b6f;--l1b:#b02d57;
+  --l2a:#e8773a;--l2b:#b55e2c;
+  --l3a:#c44bed;--l3b:#9033b8;
+  --l4a:#4b6fe8;--l4b:#3655b8;
+  --joker:#2eb89a;
+  --border:#2a2a4a;--shadow:rgba(192,54,106,0.3);
+  --radius:14px;
+}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;overflow-x:hidden;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+header{padding-top:calc(16px + env(safe-area-inset-top))!important}
+#app{max-width:480px;margin:0 auto;padding:0 0 80px}
+header{background:linear-gradient(135deg,var(--bg2),#1e0a2e);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;border-bottom:1px solid var(--border)}
+header h1{font-size:1.1rem;font-weight:800;background:linear-gradient(90deg,var(--accent3),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hdr-btns{display:flex;gap:8px}
+.icon-btn{background:var(--bg3);border:1px solid var(--border);color:var(--txt2);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:.2s}
+.icon-btn:hover{border-color:var(--accent);color:var(--accent)}
+.filters{display:flex;gap:10px;padding:14px 16px;background:var(--bg2);border-bottom:1px solid var(--border)}
+select{background:var(--bg3);border:1px solid var(--border);color:var(--txt);padding:8px 12px;border-radius:10px;font-size:.85rem;flex:1;cursor:pointer;-webkit-appearance:none;appearance:none}
+select:focus{outline:none;border-color:var(--accent)}
+.wheel-section{padding:16px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.wheel-wrap{position:relative;display:flex;align-items:center;justify-content:center}
+#wheelCanvas{border-radius:50%;display:block}
+.pointer{position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:28px solid var(--accent3);filter:drop-shadow(0 0 8px var(--accent))}
+.result-box{width:100%;background:linear-gradient(135deg,var(--bg2),var(--bg3));border:2px solid var(--accent);border-radius:var(--radius);padding:18px;text-align:center;display:none;animation:popIn .4s ease}
+@keyframes popIn{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+.result-level{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--accent3);margin-bottom:6px}
+.result-person{font-size:.8rem;color:var(--txt2);margin-bottom:8px}
+.result-text{font-size:1.15rem;font-weight:700;line-height:1.4;color:var(--txt)}
+.result-actions{display:flex;gap:8px;justify-content:center;margin-top:12px}
+.result-actions button{background:var(--bg3);border:1px solid var(--border);color:var(--txt2);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:.8rem;transition:.2s}
+.result-actions button:hover{border-color:var(--accent);color:var(--accent)}
+.result-actions button.active{border-color:var(--accent);color:var(--accent)}
+.joker-box{width:100%;background:linear-gradient(135deg,#0a2a20,#0d3028);border:2px solid var(--joker);border-radius:var(--radius);padding:18px;text-align:center;display:none;animation:popIn .4s ease}
+.joker-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--joker);margin-bottom:8px}
+.joker-text{font-size:1.1rem;font-weight:700;color:var(--txt);line-height:1.4}
+.btns{display:flex;flex-direction:column;gap:10px;padding:0 16px}
+#spinBtn{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;padding:16px;border-radius:var(--radius);font-size:1.05rem;font-weight:800;cursor:pointer;width:100%;transition:.15s;box-shadow:0 4px 20px var(--shadow)}
+#spinBtn:hover{transform:translateY(-1px);box-shadow:0 6px 24px var(--shadow)}
+#spinBtn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+#jokerBtn{background:linear-gradient(135deg,#0a3d2e,var(--joker));border:none;color:#fff;padding:13px;border-radius:var(--radius);font-size:.95rem;font-weight:700;cursor:pointer;width:100%;transition:.15s}
+#jokerBtn:hover{transform:translateY(-1px)}
+.opts{display:flex;align-items:center;justify-content:space-between;padding:10px 16px}
+.check-wrap{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.85rem;color:var(--txt2)}
+.check-wrap input{accent-color:var(--accent);width:16px;height:16px;cursor:pointer}
+.check-wrap:hover{color:var(--txt)}
+.reset-link{font-size:.8rem;color:var(--txt2);background:none;border:none;cursor:pointer;text-decoration:underline}
+.reset-link:hover{color:var(--accent3)}
+.tabs{display:flex;border-bottom:1px solid var(--border);padding:0 16px;gap:4px;margin-top:4px;overflow-x:auto}
+.tab{background:none;border:none;color:var(--txt2);padding:10px 14px;font-size:.85rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:.2s}
+.tab.active{color:var(--accent3);border-bottom-color:var(--accent)}
+.tab-content{display:none;padding:16px}
+.tab-content.active{display:block}
+.section-title{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--txt2);margin-bottom:12px}
+.empty-msg{color:var(--txt2);font-size:.9rem;text-align:center;padding:24px}
+/* History */
+.hist-item{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px}
+.hist-badge{padding:3px 8px;border-radius:6px;font-size:.7rem;font-weight:700;white-space:nowrap;flex-shrink:0}
+.hist-body{flex:1;min-width:0}
+.hist-text{font-size:.88rem;color:var(--txt);line-height:1.4}
+.hist-meta{font-size:.72rem;color:var(--txt2);margin-top:3px}
+.clear-link{background:none;border:none;color:var(--txt2);font-size:.8rem;cursor:pointer;text-decoration:underline;display:block;text-align:right;margin-bottom:12px}
+.clear-link:hover{color:var(--accent)}
+/* Favorites */
+.fav-item{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px}
+.fav-badge{flex-shrink:0;padding:3px 8px;border-radius:6px;font-size:.7rem;font-weight:700}
+.fav-body{flex:1;min-width:0}
+.fav-text{font-size:.88rem;color:var(--txt)}
+.fav-meta{font-size:.72rem;color:var(--txt2);margin-top:3px}
+.fav-actions{display:flex;gap:6px;flex-shrink:0}
+.fav-actions button{background:none;border:none;font-size:1rem;cursor:pointer;padding:2px;opacity:.7}
+.fav-actions button:hover{opacity:1}
+/* Editor */
+.add-btn{background:var(--accent);color:#fff;border:none;padding:10px 18px;border-radius:10px;font-size:.88rem;font-weight:700;cursor:pointer;width:100%;margin-bottom:14px;transition:.15s}
+.add-btn:hover{background:#a02d5a}
+.cards-section{margin-bottom:20px}
+.level-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;cursor:pointer}
+.level-title{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:4px 10px;border-radius:8px;color:#fff}
+.level-count{font-size:.75rem;color:var(--txt2)}
+.card-item{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:11px;margin-bottom:6px;display:flex;align-items:flex-start;gap:8px}
+.card-item.used{opacity:.5}
+.card-person{font-size:.7rem;color:var(--txt2);margin-bottom:3px}
+.card-text{font-size:.85rem;color:var(--txt);flex:1;line-height:1.4}
+.card-actions{display:flex;gap:4px;flex-shrink:0;margin-top:1px}
+.card-actions button{background:none;border:none;font-size:.9rem;cursor:pointer;padding:3px;opacity:.65;transition:.15s}
+.card-actions button:hover{opacity:1}
+/* Rules */
+.rules-list{list-style:none;display:flex;flex-direction:column;gap:10px}
+.rules-list li{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start;font-size:.88rem;line-height:1.5;color:var(--txt)}
+.rules-list li span.num{color:var(--accent3);font-weight:800;flex-shrink:0}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;display:none}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:22px;width:100%;max-width:400px;max-height:90vh;overflow-y:auto}
+.modal h2{font-size:1.1rem;font-weight:800;margin-bottom:16px;color:var(--txt)}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:.8rem;color:var(--txt2);margin-bottom:5px;font-weight:600}
+.form-group input,.form-group select,.form-group textarea{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--txt);padding:10px 12px;border-radius:10px;font-size:.9rem;font-family:inherit}
+.form-group textarea{resize:vertical;min-height:80px;line-height:1.5}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--accent)}
+.modal-btns{display:flex;gap:10px;margin-top:6px}
+.btn-primary{background:var(--accent);color:#fff;border:none;padding:11px 20px;border-radius:10px;font-size:.9rem;font-weight:700;cursor:pointer;flex:1}
+.btn-secondary{background:var(--bg3);border:1px solid var(--border);color:var(--txt2);padding:11px 20px;border-radius:10px;font-size:.9rem;font-weight:700;cursor:pointer;flex:1}
+.btn-danger{background:#6a1a2a;border:1px solid #8b2234;color:#ff6b6b;padding:11px 20px;border-radius:10px;font-size:.9rem;font-weight:700;cursor:pointer}
+/* Settings modal content */
+.settings-section{margin-bottom:20px}
+.settings-section h3{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--txt2);margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:6px}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(42,42,74,.5);font-size:.88rem;color:var(--txt)}
+.settings-row:last-child{border-bottom:none}
+.settings-row button{background:var(--bg3);border:1px solid var(--border);color:var(--txt2);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:.8rem;transition:.2s}
+.settings-row button:hover{border-color:var(--accent);color:var(--accent)}
+.toggle{position:relative;width:40px;height:22px;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:#333;border-radius:22px;transition:.3s}
+.toggle-slider:before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s}
+.toggle input:checked+.toggle-slider{background:var(--accent)}
+.toggle input:checked+.toggle-slider:before{transform:translateX(18px)}
+/* Toast */
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:#222244;border:1px solid var(--border);color:var(--txt);padding:10px 20px;border-radius:30px;font-size:.85rem;opacity:0;transition:.3s;pointer-events:none;z-index:999;white-space:nowrap}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* Counter badge */
+.count-badge{display:inline-flex;align-items:center;justify-content:center;background:var(--accent);color:#fff;border-radius:30px;font-size:.7rem;font-weight:700;padding:2px 7px;margin-left:6px}
+/* Scrollbar */
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+</style>
+</head>
+<body>
+
+<!-- MAIN APP -->
+<div id="app">
+  <header>
+    <h1>🎡 Ruleta Andrea &amp; Edu</h1>
+    <div class="hdr-btns">
+      <button class="icon-btn" id="settingsBtn" title="Ajustes">⚙️</button>
+    </div>
+  </header>
+
+  <div class="filters">
+    <select id="levelFilter">
+      <option value="all">Todos los niveles</option>
+      <option value="1">1 · Provocación</option>
+      <option value="2">2 · Piel</option>
+      <option value="3">3 · Boca</option>
+      <option value="4">4 · Final</option>
+    </select>
+    <select id="personFilter">
+      <option value="all">Todos</option>
+      <option value="Andrea">Andrea</option>
+      <option value="Edu">Edu</option>
+      <option value="Ambos">Ambos</option>
+    </select>
+  </div>
+
+  <div class="wheel-section">
+    <div class="wheel-wrap">
+      <canvas id="wheelCanvas" width="320" height="320"></canvas>
+      <div class="pointer"></div>
+    </div>
+    <div class="result-box" id="resultBox">
+      <div class="result-level" id="resultLevel"></div>
+      <div class="result-person" id="resultPerson"></div>
+      <div class="result-text" id="resultText"></div>
+      <div class="result-actions">
+        <button id="favResultBtn">☆ Favorito</button>
+        <button id="skipResultBtn">⏭ Saltar</button>
+        <button id="repeatResultBtn">↩ Repetir</button>
+      </div>
+    </div>
+    <div class="joker-box" id="jokerBox">
+      <div class="joker-label">🃏 Comodín</div>
+      <div class="joker-text" id="jokerText"></div>
+    </div>
+  </div>
+
+  <div class="btns">
+    <button id="spinBtn">🎡 Girar ruleta</button>
+    <button id="jokerBtn">🃏 Comodín random</button>
+  </div>
+
+  <div class="opts">
+    <label class="check-wrap">
+      <input type="checkbox" id="noRepeat">
+      No repetir hasta reiniciar
+    </label>
+    <button class="reset-link" id="resetUsed">Reiniciar usadas</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="historial">Historial</button>
+    <button class="tab" data-tab="favoritos">Favoritos</button>
+    <button class="tab" data-tab="editor">Editor</button>
+    <button class="tab" data-tab="reglas">Reglas</button>
+  </div>
+
+  <!-- HISTORIAL -->
+  <div id="historial" class="tab-content active">
+    <button class="clear-link" id="clearHistBtn">Limpiar historial</button>
+    <div id="histList"><p class="empty-msg">Aún no hay resultados</p></div>
+  </div>
+
+  <!-- FAVORITOS -->
+  <div id="favoritos" class="tab-content">
+    <div id="favList"><p class="empty-msg">Aún no hay favoritos</p></div>
+  </div>
+
+  <!-- EDITOR -->
+  <div id="editor" class="tab-content">
+    <button class="add-btn" id="addCardBtn">+ Añadir casilla</button>
+    <div id="editorList"></div>
+  </div>
+
+  <!-- REGLAS -->
+  <div id="reglas" class="tab-content">
+    <p class="section-title">Reglas del juego</p>
+    <ul class="rules-list">
+      <li><span class="num">1.</span>Cualquier casilla se puede saltar sin explicaciones.</li>
+      <li><span class="num">2.</span>Los dos pueden parar cuando quieran.</li>
+      <li><span class="num">3.</span>Si una casilla no apetece, se cambia por otra.</li>
+      <li><span class="num">4.</span>Se puede jugar por niveles o con todos mezclados.</li>
+      <li><span class="num">5.</span>Los comodines cambian reglas, turnos o intensidad.</li>
+      <li><span class="num">6.</span>Lo importante es pasarlo bien, no cumplir todo.</li>
+    </ul>
+    <p class="section-title" style="margin-top:20px">Niveles</p>
+    <ul class="rules-list">
+      <li><span class="num" style="color:var(--l1a)">N1</span>Provocación · Para empezar, calentar y crear tensión.</li>
+      <li><span class="num" style="color:var(--l2a)">N2</span>Piel · Contacto más directo, menos ropa, más intimidad.</li>
+      <li><span class="num" style="color:var(--l3a)">N3</span>Boca · Más boca, besos, lamer, provocar y subir intensidad.</li>
+      <li><span class="num" style="color:var(--l4a)">N4</span>Final · Decidir cómo seguir, ritmo, postura, cambios y cierre.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- CARD MODAL -->
+<div class="modal-overlay" id="cardModal">
+  <div class="modal">
+    <h2 id="cardModalTitle">Nueva casilla</h2>
+    <div class="form-group">
+      <label>Texto</label>
+      <textarea id="cardText" rows="3" placeholder="Escribe la acción..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>Nivel</label>
+      <select id="cardLevel">
+        <option value="1">1 · Provocación</option>
+        <option value="2">2 · Piel</option>
+        <option value="3">3 · Boca</option>
+        <option value="4">4 · Final</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Persona</label>
+      <select id="cardPerson">
+        <option value="Andrea">Andrea</option>
+        <option value="Edu">Edu</option>
+        <option value="Ambos">Ambos</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-secondary" id="cardCancelBtn">Cancelar</button>
+      <button class="btn-primary" id="cardSaveBtn">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <h2>⚙️ Ajustes</h2>
+    <div class="settings-section">
+      <h3>Datos</h3>
+      <div class="settings-row">
+        <span>Exportar casillas (JSON)</span>
+        <button id="exportBtn">Exportar</button>
+      </div>
+      <div class="settings-row">
+        <span>Importar casillas (JSON)</span>
+        <button id="importBtnTrigger">Importar</button>
+        <input type="file" id="importFile" accept=".json" style="display:none">
+      </div>
+      <div class="settings-row">
+        <span>Restaurar casillas originales</span>
+        <button id="restoreBtn" style="color:#ff6b6b">Restaurar</button>
+      </div>
+    </div>
+    <div class="modal-btns" style="margin-top:8px">
+      <button class="btn-secondary" id="settingsCloseBtn">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────
+// INITIAL DATA
+// ─────────────────────────────────────────────
+const ts = () => new Date().toISOString();
+
+function mkCard(level, person, text) {
+  return { id: Math.random().toString(36).slice(2), level, person, text, favorite: false, used: false, createdAt: ts() };
+}
+function mkJoker(text) {
+  return { id: Math.random().toString(36).slice(2), text, favorite: false, used: false, createdAt: ts() };
+}
+
+const INITIAL_CARDS = [
+  // ── NIVEL 1 · PROVOCACIÓN ──────────────────
+  // Andrea
+  mkCard(1,'Andrea','Andrea devora a Edu'),
+  mkCard(1,'Andrea','Andrea se sienta encima de Edu'),
+  mkCard(1,'Andrea','Andrea le besa el cuello a Edu'),
+  mkCard(1,'Andrea','Andrea le toca el culo a Edu'),
+  mkCard(1,'Andrea','Andrea le da azotes suaves a Edu'),
+  mkCard(1,'Andrea','Andrea le acaricia el pelo a Edu'),
+  mkCard(1,'Andrea','Andrea le acaricia el pecho a Edu'),
+  mkCard(1,'Andrea','Andrea le susurra algo caliente a Edu'),
+  mkCard(1,'Andrea','Andrea le muerde suave el cuello a Edu'),
+  mkCard(1,'Andrea','Andrea le muerde suave el labio a Edu'),
+  mkCard(1,'Andrea','Andrea le dice a Edu qué le pone de él'),
+  mkCard(1,'Andrea','Andrea le dice a Edu qué quiere hacerle'),
+  mkCard(1,'Andrea','Andrea le quita una prenda a Edu'),
+  mkCard(1,'Andrea','Andrea se tumba usando el muslo de Edu como almohada'),
+  mkCard(1,'Andrea','Andrea le guiña el ojo a Edu y le dice algo caliente'),
+  mkCard(1,'Andrea','Andrea provoca a Edu sin tocarlo'),
+  mkCard(1,'Andrea','Andrea provoca a Edu quitándose una prenda'),
+  mkCard(1,'Andrea','Andrea provoca a Edu sentándose encima'),
+  mkCard(1,'Andrea','Andrea provoca a Edu rozándose contra él'),
+  mkCard(1,'Andrea','Andrea provoca a Edu hablándole al oído'),
+  mkCard(1,'Andrea','Andrea provoca a Edu mirándolo mientras se toca el cuerpo'),
+  mkCard(1,'Andrea','Andrea provoca a Edu y él no puede tocar durante 1 minuto'),
+  // Edu
+  mkCard(1,'Edu','Edu devora a Andrea'),
+  mkCard(1,'Edu','Edu sienta a Andrea encima de él'),
+  mkCard(1,'Edu','Edu le besa el cuello a Andrea'),
+  mkCard(1,'Edu','Edu le toca el culo a Andrea'),
+  mkCard(1,'Edu','Edu le da azotes suaves a Andrea'),
+  mkCard(1,'Edu','Edu le acaricia el pelo a Andrea'),
+  mkCard(1,'Edu','Edu le acaricia los muslos a Andrea'),
+  mkCard(1,'Edu','Edu le susurra algo caliente a Andrea'),
+  mkCard(1,'Edu','Edu le muerde suave el cuello a Andrea'),
+  mkCard(1,'Edu','Edu le muerde suave el labio a Andrea'),
+  mkCard(1,'Edu','Edu le muerde suave las tetas a Andrea'),
+  mkCard(1,'Edu','Edu le muerde suave el culo a Andrea'),
+  mkCard(1,'Edu','Edu le dice a Andrea qué le pone de ella'),
+  mkCard(1,'Edu','Edu le dice a Andrea qué quiere hacerle'),
+  mkCard(1,'Edu','Edu le quita una prenda a Andrea'),
+  mkCard(1,'Edu','Edu se tumba usando el culo de Andrea como almohada'),
+  mkCard(1,'Edu','Edu le mete los deditos en la boca a Andrea, suave'),
+  mkCard(1,'Edu','Edu le guiña el ojo a Andrea y le dice algo caliente'),
+  mkCard(1,'Edu','Edu provoca a Andrea sin tocarla'),
+  mkCard(1,'Edu','Edu provoca a Andrea quitándole una prenda'),
+  mkCard(1,'Edu','Edu provoca a Andrea sentándola encima'),
+  mkCard(1,'Edu','Edu provoca a Andrea rozándose contra ella'),
+  mkCard(1,'Edu','Edu provoca a Andrea hablándole al oído'),
+  mkCard(1,'Edu','Edu provoca a Andrea mirándola mientras le acaricia el cuerpo'),
+  mkCard(1,'Edu','Edu provoca a Andrea y ella no puede tocar durante 1 minuto'),
+  // ── NIVEL 2 · PIEL ────────────────────────
+  // Andrea
+  mkCard(2,'Andrea','Andrea besa el cuerpo de Edu'),
+  mkCard(2,'Andrea','Andrea le quita la camiseta a Edu'),
+  mkCard(2,'Andrea','Andrea acaricia el abdomen de Edu'),
+  mkCard(2,'Andrea','Andrea le pasa las manos por debajo de la camiseta a Edu'),
+  mkCard(2,'Andrea','Andrea se frota con Edu por encima de la ropa interior'),
+  mkCard(2,'Andrea','Andrea le toca el pito a Edu por encima de los calzoncillos'),
+  mkCard(2,'Andrea','Andrea le baja los calzoncillos a Edu lentamente'),
+  mkCard(2,'Andrea','Andrea le toca el pito a Edu'),
+  mkCard(2,'Andrea','Andrea le acaricia el pito a Edu despacio'),
+  mkCard(2,'Andrea','Andrea le hace una paja a Edu'),
+  mkCard(2,'Andrea','Andrea le hace una paja lenta a Edu'),
+  mkCard(2,'Andrea','Andrea le hace una paja más intensa a Edu'),
+  mkCard(2,'Andrea','Andrea se tumba con la cara en el pito de Edu'),
+  mkCard(2,'Andrea','Andrea le da besitos suaves en el pito a Edu'),
+  mkCard(2,'Andrea','Andrea roza el pito de Edu con los labios'),
+  mkCard(2,'Andrea','Andrea lame suave el pito de Edu'),
+  mkCard(2,'Andrea','Andrea provoca el pito de Edu con la boca sin morder'),
+  mkCard(2,'Andrea','Andrea manda el ritmo durante 2 minutos'),
+  mkCard(2,'Andrea','Andrea se tumba encima de Edu'),
+  // Edu
+  mkCard(2,'Edu','Edu besa el cuerpo de Andrea'),
+  mkCard(2,'Edu','Edu le quita la camiseta a Andrea'),
+  mkCard(2,'Edu','Edu le chupa las tetas a Andrea'),
+  mkCard(2,'Edu','Edu le besa barriga y cintura a Andrea'),
+  mkCard(2,'Edu','Edu le acaricia los muslos a Andrea'),
+  mkCard(2,'Edu','Edu le pasa las manos por debajo de la camiseta a Andrea'),
+  mkCard(2,'Edu','Edu se frota con Andrea por encima de la ropa interior'),
+  mkCard(2,'Edu','Edu le toca el chocho a Andrea por encima de las braguitas'),
+  mkCard(2,'Edu','Edu le baja las braguitas a Andrea lentamente'),
+  mkCard(2,'Edu','Edu le toca el chocho a Andrea'),
+  mkCard(2,'Edu','Edu acaricia el chocho de Andrea despacio'),
+  mkCard(2,'Edu','Edu le hace dedos a Andrea'),
+  mkCard(2,'Edu','Edu le hace dedos despacio a Andrea'),
+  mkCard(2,'Edu','Edu deja que Andrea le guíe la mano'),
+  mkCard(2,'Edu','Edu se tumba con la cara en el chocho de Andrea'),
+  mkCard(2,'Edu','Edu le da besitos suaves en el chocho a Andrea'),
+  mkCard(2,'Edu','Edu roza el chocho de Andrea con los labios'),
+  mkCard(2,'Edu','Edu lame suave el chocho de Andrea'),
+  mkCard(2,'Edu','Edu provoca el chocho de Andrea con la boca sin morder'),
+  mkCard(2,'Edu','Edu se tumba encima de Andrea sin aplastarla'),
+  // ── NIVEL 3 · BOCA ────────────────────────
+  // Andrea
+  mkCard(3,'Andrea','Andrea besa los muslos de Edu'),
+  mkCard(3,'Andrea','Andrea besa el pito de Edu'),
+  mkCard(3,'Andrea','Andrea muerde suave el pito de Edu'),
+  mkCard(3,'Andrea','Andrea lame el pito de Edu'),
+  mkCard(3,'Andrea','Andrea le chupa el pito a Edu'),
+  mkCard(3,'Andrea','Andrea le chupa el pito despacio a Edu'),
+  mkCard(3,'Andrea','Andrea combina paja y boca con Edu'),
+  mkCard(3,'Andrea','Andrea combina paja y besos con Edu'),
+  mkCard(3,'Andrea','Andrea marca el ritmo con Edu'),
+  mkCard(3,'Andrea','Andrea provoca a Edu y para'),
+  mkCard(3,'Andrea','Andrea le habla sucio a Edu'),
+  mkCard(3,'Andrea','Andrea le pide a Edu que la mire'),
+  mkCard(3,'Andrea','Andrea le dice a Edu qué quiere que él le haga'),
+  mkCard(3,'Andrea','Andrea deja que Edu le diga el ritmo'),
+  mkCard(3,'Andrea','Andrea repite lo que más le guste a Edu'),
+  // Edu
+  mkCard(3,'Edu','Edu besa los muslos de Andrea'),
+  mkCard(3,'Edu','Edu besa el chocho de Andrea'),
+  mkCard(3,'Edu','Edu lame el chocho de Andrea'),
+  mkCard(3,'Edu','Edu le come el chocho a Andrea'),
+  mkCard(3,'Edu','Edu le come el chocho despacio a Andrea'),
+  mkCard(3,'Edu','Edu combina boca y dedos con Andrea'),
+  mkCard(3,'Edu','Edu combina dedos y besos con Andrea'),
+  mkCard(3,'Edu','Edu toca el clítoris de Andrea'),
+  mkCard(3,'Edu','Edu deja que Andrea le diga el ritmo'),
+  mkCard(3,'Edu','Edu provoca a Andrea y para'),
+  mkCard(3,'Edu','Edu mira a Andrea mientras la toca'),
+  mkCard(3,'Edu','Edu le habla sucio a Andrea'),
+  mkCard(3,'Edu','Edu le dice a Andrea qué quiere que ella le haga'),
+  mkCard(3,'Edu','Edu repite lo que más le guste a Andrea'),
+  // ── NIVEL 4 · FINAL ───────────────────────
+  // Andrea
+  mkCard(4,'Andrea','Andrea elige la postura'),
+  mkCard(4,'Andrea','Andrea se pone encima de Edu'),
+  mkCard(4,'Andrea','Andrea marca el ritmo'),
+  mkCard(4,'Andrea','Andrea pide que Edu vaya lento'),
+  mkCard(4,'Andrea','Andrea pide que Edu vaya más fuerte'),
+  mkCard(4,'Andrea','Andrea cambia de postura'),
+  mkCard(4,'Andrea','Andrea manda durante 5 minutos'),
+  mkCard(4,'Andrea','Andrea decide si quiere boca, dedos o penetración'),
+  mkCard(4,'Andrea','Andrea se mueve encima de Edu'),
+  mkCard(4,'Andrea','Andrea decide cómo terminar'),
+  mkCard(4,'Andrea','Andrea pide una pausa'),
+  mkCard(4,'Andrea','Andrea pide abrazo después'),
+  mkCard(4,'Andrea','Andrea decide si repetir una casilla anterior'),
+  mkCard(4,'Andrea','Andrea elige si Edu va lento o intenso'),
+  mkCard(4,'Andrea','Andrea manda sin hablar durante 2 minutos'),
+  // Edu
+  mkCard(4,'Edu','Edu elige la postura'),
+  mkCard(4,'Edu','Edu se pone encima de Andrea'),
+  mkCard(4,'Edu','Edu marca el ritmo'),
+  mkCard(4,'Edu','Edu va lento con Andrea'),
+  mkCard(4,'Edu','Edu va más intenso con Andrea'),
+  mkCard(4,'Edu','Edu cambia de postura'),
+  mkCard(4,'Edu','Edu hace dedos antes de penetración'),
+  mkCard(4,'Edu','Edu le come el chocho antes de penetración'),
+  mkCard(4,'Edu','Edu da azotes suaves a Andrea'),
+  mkCard(4,'Edu','Edu manda durante 5 minutos'),
+  mkCard(4,'Edu','Edu decide una postura cómoda'),
+  mkCard(4,'Edu','Edu termina abrazando a Andrea'),
+  mkCard(4,'Edu','Edu decide si repetir una casilla anterior'),
+  mkCard(4,'Edu','Edu elige si Andrea va lento o intenso'),
+  mkCard(4,'Edu','Edu manda sin hablar durante 2 minutos'),
+];
+
+const INITIAL_JOKERS = [
+  'Hablar con gestos durante 2 minutos',
+  'Modo estatua: uno se queda quieto y el otro manda',
+  'Cambio de mando: ahora manda Andrea',
+  'Cambio de mando: ahora manda Edu',
+  'Prohibido tocar durante 1 minuto',
+  'Solo besos durante 2 minutos',
+  'Solo manos durante 2 minutos',
+  'Sin manos durante 1 minuto',
+  'Ojos cerrados durante 1 minuto',
+  'Susurrar algo caliente al oído',
+  'Pausa falsa: parar 20 segundos y seguir',
+  'Repetir la última casilla',
+  'Repetir la casilla favorita',
+  'Roba turno: haces una casilla del otro',
+  'Andrea elige cualquier casilla',
+  'Edu elige cualquier casilla',
+  'Subir un nivel',
+  'Bajar un nivel',
+  'Cambiar de sitio',
+  'Reto sorpresa inventado por la otra persona',
+  '¿Qué quieres que pase ahora?',
+  'Modo espejo: uno hace algo y el otro lo copia',
+  'Cuenta atrás: 10 segundos para quitar una prenda',
+  'No mirar durante 1 minuto',
+  'Mirada fija durante 30 segundos',
+  'Pausa de agua',
+  'Abrazo de 1 minuto',
+  'Piedra, papel o tijera: quien pierde obedece una casilla',
+  'Tirar otra vez y el otro elige el nivel',
+  'Inventar un apodo caliente para el otro',
+  'Decir una frase caliente sin reírse',
+  'La otra persona elige si se repite o se cambia',
+  'Modo sin hablar: solo mirada y manos',
+  'Modo pausa: 30 segundos sin tocar',
+  'Modo mando total durante 1 minuto',
+  'Elegir una casilla del nivel anterior',
+  'Elegir una casilla del siguiente nivel',
+  'Final libre elegido entre los dos',
+].map(t => mkJoker(t));
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+const STORE_KEY = 'ruleta_ae_v2';
+let state = { cards: [], jokers: [], history: [], settings: { noRepeat: false } };
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) { state = JSON.parse(raw); return; }
+  } catch(e) {}
+  state.cards = JSON.parse(JSON.stringify(INITIAL_CARDS));
+  state.jokers = JSON.parse(JSON.stringify(INITIAL_JOKERS));
+}
+
+function saveState() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+// ─────────────────────────────────────────────
+// COLORS
+// ─────────────────────────────────────────────
+const LEVEL_COLORS = {
+  1: ['#e63b6f','#b02d57','#d43362','#9e2850'],
+  2: ['#e8773a','#b55e2c','#d46a30','#a05226'],
+  3: ['#c44bed','#9033b8','#b040d8','#7d2da0'],
+  4: ['#4b6fe8','#3655b8','#4260d0','#2e4aa0'],
+};
+const LEVEL_NAMES = { 1:'Provocación', 2:'Piel', 3:'Boca', 4:'Final' };
+
+function getLevelColor(level, idx) {
+  const cols = LEVEL_COLORS[level] || LEVEL_COLORS[1];
+  return cols[idx % cols.length];
+}
+
+// ─────────────────────────────────────────────
+// CANVAS WHEEL
+// ─────────────────────────────────────────────
+const canvas = document.getElementById('wheelCanvas');
+const ctx = canvas.getContext('2d');
+let wheelAngle = 0;
+let isSpinning = false;
+let animationId = null;
+let currentWinner = null;
+let currentFilteredCards = [];
+
+function getFilteredCards() {
+  const lvl = document.getElementById('levelFilter').value;
+  const prs = document.getElementById('personFilter').value;
+  const noRep = state.settings.noRepeat;
+  return state.cards.filter(c => {
+    if (lvl !== 'all' && c.level !== parseInt(lvl)) return false;
+    if (prs === 'Andrea' && c.person !== 'Andrea') return false;
+    if (prs === 'Edu' && c.person !== 'Edu') return false;
+    if (prs === 'Ambos' && c.person !== 'Ambos') return false;
+    if (noRep && c.used) return false;
+    return true;
+  });
+}
+
+function resizeCanvas() {
+  const size = Math.min(window.innerWidth - 40, 340);
+  canvas.width = size;
+  canvas.height = size;
+  drawWheel();
+}
+
+function drawWheel() {
+  const cards = getFilteredCards();
+  currentFilteredCards = cards;
+  const W = canvas.width, H = canvas.height;
+  const cx = W / 2, cy = H / 2;
+  const r = Math.min(cx, cy) - 18;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Outer ring
+  ctx.beginPath();
+  ctx.arc(cx, cy, r + 10, 0, 2 * Math.PI);
+  ctx.fillStyle = '#16162e';
+  ctx.fill();
+  ctx.strokeStyle = '#2a2a4a';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  if (!cards.length) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+    ctx.fillStyle = '#12122a';
+    ctx.fill();
+    ctx.fillStyle = '#555';
+    ctx.font = '13px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Sin casillas', cx, cy - 6);
+    ctx.fillText('disponibles', cx, cy + 10);
+    drawPointer(cx, cy, r);
+    return;
+  }
+
+  const n = cards.length;
+  const segRad = (2 * Math.PI) / n;
+  const rotRad = (wheelAngle * Math.PI) / 180;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(rotRad);
+
+  for (let i = 0; i < n; i++) {
+    const startA = -Math.PI / 2 + i * segRad;
+    const endA = startA + segRad;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, r, startA, endA);
+    ctx.closePath();
+    ctx.fillStyle = getLevelColor(cards[i].level, i);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,.4)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Text
+    if (n <= 50) {
+      const midA = startA + segRad / 2;
+      ctx.save();
+      ctx.rotate(midA);
+      const fs = Math.max(7, Math.min(11, 200 / n));
+      ctx.font = `bold ${fs}px sans-serif`;
+      ctx.textAlign = 'right';
+      ctx.fillStyle = 'rgba(255,255,255,.92)';
+      const maxLen = Math.floor((r * 0.75) / (fs * 0.58));
+      let txt = cards[i].text;
+      if (txt.length > maxLen) txt = txt.slice(0, Math.max(4, maxLen - 1)) + '…';
+      ctx.fillText(txt, r - 10, fs * 0.38);
+      ctx.restore();
+    }
+  }
+
+  // Center
+  ctx.beginPath();
+  ctx.arc(0, 0, 20, 0, 2 * Math.PI);
+  ctx.fillStyle = '#0a0a18';
+  ctx.fill();
+  ctx.strokeStyle = '#c0366a';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  ctx.restore();
+  drawPointer(cx, cy, r);
+}
+
+function drawPointer(cx, cy, r) {
+  const pw = 12, ph = 22;
+  ctx.save();
+  ctx.shadowColor = '#ff4488';
+  ctx.shadowBlur = 8;
+  ctx.beginPath();
+  ctx.moveTo(cx - pw / 2, cy - r - 2);
+  ctx.lineTo(cx + pw / 2, cy - r - 2);
+  ctx.lineTo(cx, cy - r + ph);
+  ctx.closePath();
+  ctx.fillStyle = '#ff4488';
+  ctx.fill();
+  ctx.restore();
+}
+
+// ─────────────────────────────────────────────
+// SPIN
+// ─────────────────────────────────────────────
+function easeOut(t) { return 1 - Math.pow(1 - t, 4); }
+
+function startSpin() {
+  if (isSpinning) return;
+  const cards = getFilteredCards();
+  if (!cards.length) { showToast('Sin casillas con estos filtros'); return; }
+
+  // Check if all used
+  if (state.settings.noRepeat) {
+    const available = cards.filter(c => !c.used);
+    if (!available.length) { showToast('Todas las casillas usadas · Reinicia'); return; }
+  }
+
+  isSpinning = true;
+  document.getElementById('spinBtn').disabled = true;
+  document.getElementById('resultBox').style.display = 'none';
+  document.getElementById('jokerBox').style.display = 'none';
+
+  const n = cards.length;
+  const winnerIdx = Math.floor(Math.random() * n);
+  const winner = cards[winnerIdx];
+  const segDeg = 360 / n;
+
+  // Target angle: winner center at top
+  const target = -(winnerIdx + 0.5) * segDeg;
+  let finalAngle = target;
+  const minEnd = wheelAngle + 5 * 360;
+  while (finalAngle < minEnd) finalAngle += 360;
+
+  const startAngle = wheelAngle;
+  const totalDelta = finalAngle - startAngle;
+  const duration = 4500 + Math.random() * 1000;
+  const startTime = performance.now();
+
+  function animate(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    wheelAngle = startAngle + totalDelta * easeOut(progress);
+    drawWheel();
+    if (progress < 1) {
+      animationId = requestAnimationFrame(animate);
+    } else {
+      wheelAngle = finalAngle;
+      isSpinning = false;
+      document.getElementById('spinBtn').disabled = false;
+      handleResult(winner);
+    }
+  }
+  animationId = requestAnimationFrame(animate);
+}
+
+function handleResult(card) {
+  currentWinner = card;
+  // Mark used
+  const c = state.cards.find(x => x.id === card.id);
+  if (c) c.used = true;
+  // Add to history
+  state.history.unshift({ cardId: card.id, text: card.text, level: card.level, person: card.person, ts: ts() });
+  if (state.history.length > 50) state.history.length = 50;
+  saveState();
+
+  // Show result
+  const box = document.getElementById('resultBox');
+  document.getElementById('resultLevel').textContent = `Nivel ${card.level} · ${LEVEL_NAMES[card.level]}`;
+  document.getElementById('resultPerson').textContent = card.person;
+  document.getElementById('resultText').textContent = card.text;
+  document.getElementById('resultLevel').style.color = LEVEL_COLORS[card.level][0];
+  updateFavResultBtn(card);
+  box.style.display = 'block';
+
+  renderHistory();
+  drawWheel();
+}
+
+function updateFavResultBtn(card) {
+  const btn = document.getElementById('favResultBtn');
+  if (!card) return;
+  const c = state.cards.find(x => x.id === card.id);
+  btn.textContent = (c && c.favorite) ? '★ Favorito' : '☆ Favorito';
+  btn.classList.toggle('active', !!(c && c.favorite));
+}
+
+// ─────────────────────────────────────────────
+// JOKER
+// ─────────────────────────────────────────────
+function pickJoker() {
+  const available = state.jokers.filter(j => !j.used);
+  if (!available.length) { showToast('Todos los comodines usados'); return; }
+  const j = available[Math.floor(Math.random() * available.length)];
+  const jObj = state.jokers.find(x => x.id === j.id);
+  if (jObj) jObj.used = true;
+  state.history.unshift({ cardId: null, text: j.text, level: 0, person: 'Comodín', ts: ts() });
+  saveState();
+  document.getElementById('resultBox').style.display = 'none';
+  const box = document.getElementById('jokerBox');
+  document.getElementById('jokerText').textContent = j.text;
+  box.style.display = 'block';
+  renderHistory();
+}
+
+// ─────────────────────────────────────────────
+// HISTORY
+// ─────────────────────────────────────────────
+function renderHistory() {
+  const el = document.getElementById('histList');
+  if (!state.history.length) { el.innerHTML = '<p class="empty-msg">Aún no hay resultados</p>'; return; }
+  el.innerHTML = state.history.map(h => {
+    const col = h.level ? (LEVEL_COLORS[h.level] || ['#888'])[0] : '#2eb89a';
+    const label = h.level ? `N${h.level}` : '🃏';
+    const who = h.person || '';
+    const time = new Date(h.ts).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' });
+    return `<div class="hist-item">
+      <span class="hist-badge" style="background:${col}">${label}</span>
+      <div class="hist-body">
+        <div class="hist-text">${h.text}</div>
+        <div class="hist-meta">${who} · ${time}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────────
+// FAVORITES
+// ─────────────────────────────────────────────
+function renderFavorites() {
+  const el = document.getElementById('favList');
+  const favs = state.cards.filter(c => c.favorite);
+  if (!favs.length) { el.innerHTML = '<p class="empty-msg">Aún no hay favoritos</p>'; return; }
+  el.innerHTML = favs.map(c => {
+    const col = (LEVEL_COLORS[c.level] || ['#888'])[0];
+    return `<div class="fav-item">
+      <span class="fav-badge" style="background:${col}">N${c.level}</span>
+      <div class="fav-body">
+        <div class="fav-text">${c.text}</div>
+        <div class="fav-meta">${c.person} · ${LEVEL_NAMES[c.level]}</div>
+      </div>
+      <div class="fav-actions">
+        <button onclick="toggleFav('${c.id}')" title="Quitar favorito">★</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleFav(id) {
+  const c = state.cards.find(x => x.id === id);
+  if (c) { c.favorite = !c.favorite; saveState(); }
+  if (currentWinner && currentWinner.id === id) updateFavResultBtn(currentWinner);
+  renderFavorites();
+  renderEditor();
+}
+
+// ─────────────────────────────────────────────
+// EDITOR
+// ─────────────────────────────────────────────
+function renderEditor() {
+  const el = document.getElementById('editorList');
+  const groups = [1, 2, 3, 4].map(lvl => ({
+    level: lvl,
+    cards: state.cards.filter(c => c.level === lvl)
+  }));
+
+  el.innerHTML = groups.map(g => {
+    const col = (LEVEL_COLORS[g.level] || ['#888'])[0];
+    const cardHtml = g.cards.map(c => `
+      <div class="card-item ${c.used ? 'used' : ''}">
+        <div style="flex:1">
+          <div class="card-person">${c.person}</div>
+          <div class="card-text">${c.text}</div>
+        </div>
+        <div class="card-actions">
+          <button onclick="toggleFav('${c.id}')" title="Favorito" style="color:${c.favorite?'#ffcc00':'#555'}">${c.favorite?'★':'☆'}</button>
+          <button onclick="toggleUsed('${c.id}')" title="Marcar usada" style="color:${c.used?'#888':'#4488ff'}">✓</button>
+          <button onclick="openEditCard('${c.id}')" title="Editar">✏️</button>
+          <button onclick="deleteCard('${c.id}')" title="Borrar" style="color:#ff4466">🗑</button>
+        </div>
+      </div>`).join('');
+    return `<div class="cards-section">
+      <div class="level-header">
+        <span class="level-title" style="background:${col}">Nivel ${g.level} · ${LEVEL_NAMES[g.level]}</span>
+        <span class="level-count">${g.cards.length} casillas</span>
+      </div>
+      ${cardHtml || '<p class="empty-msg" style="font-size:.8rem">Sin casillas</p>'}
+    </div>`;
+  }).join('');
+}
+
+function toggleUsed(id) {
+  const c = state.cards.find(x => x.id === id);
+  if (c) { c.used = !c.used; saveState(); renderEditor(); drawWheel(); }
+}
+
+function deleteCard(id) {
+  if (!confirm('¿Borrar esta casilla?')) return;
+  state.cards = state.cards.filter(c => c.id !== id);
+  saveState(); renderEditor(); drawWheel();
+}
+
+// Card modal
+let editingCardId = null;
+
+function openAddCard() {
+  editingCardId = null;
+  document.getElementById('cardModalTitle').textContent = 'Nueva casilla';
+  document.getElementById('cardText').value = '';
+  document.getElementById('cardLevel').value = '1';
+  document.getElementById('cardPerson').value = 'Andrea';
+  document.getElementById('cardModal').classList.add('open');
+}
+
+function openEditCard(id) {
+  const c = state.cards.find(x => x.id === id);
+  if (!c) return;
+  editingCardId = id;
+  document.getElementById('cardModalTitle').textContent = 'Editar casilla';
+  document.getElementById('cardText').value = c.text;
+  document.getElementById('cardLevel').value = c.level;
+  document.getElementById('cardPerson').value = c.person;
+  document.getElementById('cardModal').classList.add('open');
+}
+
+function saveCard() {
+  const text = document.getElementById('cardText').value.trim();
+  if (!text) { showToast('El texto no puede estar vacío'); return; }
+  const level = parseInt(document.getElementById('cardLevel').value);
+  const person = document.getElementById('cardPerson').value;
+  if (editingCardId) {
+    const c = state.cards.find(x => x.id === editingCardId);
+    if (c) { c.text = text; c.level = level; c.person = person; }
+  } else {
+    state.cards.push({ id: Math.random().toString(36).slice(2), level, person, text, favorite: false, used: false, createdAt: ts() });
+  }
+  saveState(); renderEditor(); drawWheel();
+  document.getElementById('cardModal').classList.remove('open');
+  showToast(editingCardId ? 'Casilla actualizada' : 'Casilla añadida');
+}
+
+// ─────────────────────────────────────────────
+// SETTINGS
+// ─────────────────────────────────────────────
+function openSettings() {
+  document.getElementById('settingsModal').classList.add('open');
+}
+
+function exportCards() {
+  const data = { cards: state.cards, jokers: state.jokers };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ruleta-andrea-edu.json';
+  a.click();
+  showToast('Exportado correctamente');
+}
+
+function importCards(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.cards && Array.isArray(data.cards)) {
+        if (!confirm(`Importar ${data.cards.length} casillas? Se añadirán a las existentes.`)) return;
+        state.cards = [...state.cards, ...data.cards];
+        if (data.jokers && Array.isArray(data.jokers)) state.jokers = [...state.jokers, ...data.jokers];
+        saveState(); renderEditor(); drawWheel();
+        showToast('Importado correctamente');
+      } else showToast('Formato JSON inválido');
+    } catch { showToast('Error al leer el archivo'); }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function restoreInitial() {
+  if (!confirm('¿Restaurar todas las casillas originales? Se añadirán a las existentes (sin duplicar).')) return;
+  const existingTexts = new Set(state.cards.map(c => c.text));
+  const toAdd = INITIAL_CARDS.filter(c => !existingTexts.has(c.text));
+  state.cards = [...state.cards, ...toAdd.map(c => ({ ...c, id: Math.random().toString(36).slice(2), used: false }))];
+  const existingJokers = new Set(state.jokers.map(j => j.text));
+  const toAddJ = INITIAL_JOKERS.filter(j => !existingJokers.has(j.text));
+  state.jokers = [...state.jokers, ...toAddJ.map(j => ({ ...j, id: Math.random().toString(36).slice(2), used: false }))];
+  saveState(); renderEditor(); drawWheel();
+  showToast('Casillas originales restauradas');
+}
+
+// ─────────────────────────────────────────────
+// TOAST
+// ─────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ─────────────────────────────────────────────
+// TABS
+// ─────────────────────────────────────────────
+function activateTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === name));
+  if (name === 'historial') renderHistory();
+  if (name === 'favoritos') renderFavorites();
+  if (name === 'editor') renderEditor();
+}
+
+// ─────────────────────────────────────────────
+// INIT & EVENT LISTENERS
+// ─────────────────────────────────────────────
+loadState();
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+// Filters
+document.getElementById('levelFilter').addEventListener('change', drawWheel);
+document.getElementById('personFilter').addEventListener('change', drawWheel);
+
+// Buttons
+document.getElementById('spinBtn').addEventListener('click', startSpin);
+document.getElementById('jokerBtn').addEventListener('click', pickJoker);
+
+// No repeat
+document.getElementById('noRepeat').checked = state.settings.noRepeat;
+document.getElementById('noRepeat').addEventListener('change', e => {
+  state.settings.noRepeat = e.target.checked;
+  saveState(); drawWheel();
+});
+
+// Reset used
+document.getElementById('resetUsed').addEventListener('click', () => {
+  state.cards.forEach(c => c.used = false);
+  state.jokers.forEach(j => j.used = false);
+  saveState(); drawWheel(); showToast('Casillas reiniciadas');
+  if (document.getElementById('editor').classList.contains('active')) renderEditor();
+});
+
+// Result actions
+document.getElementById('favResultBtn').addEventListener('click', () => {
+  if (!currentWinner) return;
+  toggleFav(currentWinner.id);
+  updateFavResultBtn(currentWinner);
+});
+document.getElementById('skipResultBtn').addEventListener('click', () => {
+  document.getElementById('resultBox').style.display = 'none';
+  startSpin();
+});
+document.getElementById('repeatResultBtn').addEventListener('click', () => {
+  if (currentWinner) { document.getElementById('resultBox').style.display = 'none'; setTimeout(() => handleResult(currentWinner), 100); }
+});
+
+// Tabs
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => activateTab(t.dataset.tab)));
+
+// Clear history
+document.getElementById('clearHistBtn').addEventListener('click', () => {
+  if (!confirm('¿Limpiar el historial?')) return;
+  state.history = []; saveState(); renderHistory();
+});
+
+// Add card
+document.getElementById('addCardBtn').addEventListener('click', openAddCard);
+document.getElementById('cardSaveBtn').addEventListener('click', saveCard);
+document.getElementById('cardCancelBtn').addEventListener('click', () => document.getElementById('cardModal').classList.remove('open'));
+
+// Settings
+document.getElementById('settingsBtn').addEventListener('click', openSettings);
+document.getElementById('settingsCloseBtn').addEventListener('click', () => document.getElementById('settingsModal').classList.remove('open'));
+document.getElementById('exportBtn').addEventListener('click', exportCards);
+document.getElementById('importBtnTrigger').addEventListener('click', () => document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change', importCards);
+document.getElementById('restoreBtn').addEventListener('click', restoreInitial);
+
+// Close modals clicking outside
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+});
+
+// Start
+renderHistory();
+</script>
+</body>
+</html>
