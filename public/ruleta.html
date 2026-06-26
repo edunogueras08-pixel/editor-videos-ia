@@ -27,14 +27,7 @@
 }
 body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;overflow-x:hidden;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
 header{padding-top:calc(16px + env(safe-area-inset-top))!important}
-#lockScreen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;z-index:1000;padding:20px}
-#lockScreen h1{font-size:1.8rem;color:var(--accent3);text-align:center}
-#lockScreen p{color:var(--txt2);text-align:center}
-#lockPin{background:var(--bg3);border:2px solid var(--border);color:var(--txt);padding:14px 20px;border-radius:var(--radius);font-size:1.4rem;text-align:center;letter-spacing:6px;width:180px}
-#lockPin:focus{outline:none;border-color:var(--accent)}
-#lockBtn{background:var(--accent);color:#fff;border:none;padding:14px 32px;border-radius:var(--radius);font-size:1rem;font-weight:700;cursor:pointer}
-#lockErr{color:#ff4488;font-size:.9rem;min-height:20px}
-#app{display:none;max-width:480px;margin:0 auto;padding:0 0 80px}
+#app{max-width:480px;margin:0 auto;padding:0 0 80px}
 header{background:linear-gradient(135deg,var(--bg2),#1e0a2e);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;border-bottom:1px solid var(--border)}
 header h1{font-size:1.1rem;font-weight:800;background:linear-gradient(90deg,var(--accent3),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .hdr-btns{display:flex;gap:8px}
@@ -150,16 +143,6 @@ select:focus{outline:none;border-color:var(--accent)}
 </style>
 </head>
 <body>
-
-<!-- LOCK SCREEN -->
-<div id="lockScreen">
-  <div style="font-size:3rem">🔒</div>
-  <h1>Ruleta Andrea &amp; Edu</h1>
-  <p>Introduce el PIN para entrar</p>
-  <input id="lockPin" type="password" inputmode="numeric" maxlength="6" placeholder="••••" autocomplete="off">
-  <div id="lockErr"></div>
-  <button id="lockBtn">Entrar</button>
-</div>
 
 <!-- MAIN APP -->
 <div id="app">
@@ -301,20 +284,6 @@ select:focus{outline:none;border-color:var(--accent)}
 <div class="modal-overlay" id="settingsModal">
   <div class="modal">
     <h2>⚙️ Ajustes</h2>
-    <div class="settings-section">
-      <h3>Seguridad</h3>
-      <div class="settings-row">
-        <span>Proteger con PIN</span>
-        <label class="toggle"><input type="checkbox" id="pinToggle"><span class="toggle-slider"></span></label>
-      </div>
-      <div id="pinSection" style="display:none;margin-top:10px;display:none">
-        <div class="form-group">
-          <label>PIN (4-6 dígitos)</label>
-          <input type="password" id="pinInput" inputmode="numeric" maxlength="6" placeholder="Nuevo PIN">
-        </div>
-        <button class="btn-primary" id="savePinBtn" style="width:100%">Guardar PIN</button>
-      </div>
-    </div>
     <div class="settings-section">
       <h3>Datos</h3>
       <div class="settings-row">
@@ -557,7 +526,7 @@ const INITIAL_JOKERS = [
 // STATE
 // ─────────────────────────────────────────────
 const STORE_KEY = 'ruleta_ae_v2';
-let state = { cards: [], jokers: [], history: [], settings: { noRepeat: false, pinEnabled: false, pin: '' } };
+let state = { cards: [], jokers: [], history: [], settings: { noRepeat: false } };
 
 function loadState() {
   try {
@@ -961,13 +930,7 @@ function saveCard() {
 // SETTINGS
 // ─────────────────────────────────────────────
 function openSettings() {
-  document.getElementById('pinToggle').checked = state.settings.pinEnabled;
-  togglePinSection(state.settings.pinEnabled);
   document.getElementById('settingsModal').classList.add('open');
-}
-
-function togglePinSection(show) {
-  document.getElementById('pinSection').style.display = show ? 'block' : 'none';
 }
 
 function exportCards() {
@@ -1010,33 +973,6 @@ function restoreInitial() {
   state.jokers = [...state.jokers, ...toAddJ.map(j => ({ ...j, id: Math.random().toString(36).slice(2), used: false }))];
   saveState(); renderEditor(); drawWheel();
   showToast('Casillas originales restauradas');
-}
-
-// ─────────────────────────────────────────────
-// PIN / LOCK
-// ─────────────────────────────────────────────
-function checkLock() {
-  if (!state.settings.pinEnabled || !state.settings.pin) {
-    showApp(); return;
-  }
-  document.getElementById('lockScreen').style.display = 'flex';
-  document.getElementById('app').style.display = 'none';
-}
-
-function showApp() {
-  document.getElementById('lockScreen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-}
-
-function tryUnlock() {
-  const pin = document.getElementById('lockPin').value;
-  if (pin === state.settings.pin) {
-    document.getElementById('lockErr').textContent = '';
-    showApp();
-  } else {
-    document.getElementById('lockErr').textContent = 'PIN incorrecto';
-    document.getElementById('lockPin').value = '';
-  }
 }
 
 // ─────────────────────────────────────────────
@@ -1128,37 +1064,12 @@ document.getElementById('importBtnTrigger').addEventListener('click', () => docu
 document.getElementById('importFile').addEventListener('change', importCards);
 document.getElementById('restoreBtn').addEventListener('click', restoreInitial);
 
-document.getElementById('pinToggle').addEventListener('change', e => {
-  togglePinSection(e.target.checked);
-  if (!e.target.checked) {
-    state.settings.pinEnabled = false;
-    state.settings.pin = '';
-    saveState();
-    showToast('PIN desactivado');
-  }
-});
-
-document.getElementById('savePinBtn').addEventListener('click', () => {
-  const pin = document.getElementById('pinInput').value.trim();
-  if (pin.length < 4) { showToast('El PIN debe tener al menos 4 dígitos'); return; }
-  state.settings.pinEnabled = true;
-  state.settings.pin = pin;
-  saveState();
-  document.getElementById('pinInput').value = '';
-  showToast('PIN guardado');
-});
-
-// Lock
-document.getElementById('lockBtn').addEventListener('click', tryUnlock);
-document.getElementById('lockPin').addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
-
 // Close modals clicking outside
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
 });
 
 // Start
-checkLock();
 renderHistory();
 </script>
 </body>
